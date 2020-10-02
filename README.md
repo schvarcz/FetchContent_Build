@@ -12,9 +12,8 @@ FetchContent_Declare(
 )
 
 FetchContent_Populate("FetchContent_Build")
-FetchContent_GetProperties("FetchContent_Buil")
-list(APPEND CMAKE_MODULE_PATH "${fetchcontent_build_SOURCE_DIR}/cmake-modules")
 
+include("${fetchcontent_build_SOURCE_DIR}/prepare.cmake")
 include(FetchNBuildContent)
 ```
 
