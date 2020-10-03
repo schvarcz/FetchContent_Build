@@ -178,6 +178,7 @@ function(__FetchContent_directBuild contentName)
       BINARY_DIR
       INSTALL_DIR
       CMAKELISTS_TEMPLATE
+      WITH_INSTALL
   )
   set(multiValueArgs CMAKE_ARGS)
 
@@ -228,10 +229,19 @@ function(__FetchContent_directBuild contentName)
   # foreach(arg IN LISTS ARG_UNPARSED_ARGUMENTS)
   #   set(ARG_EXTRA "${ARG_EXTRA} ${arg}")
   # endforeach()
+
+  if(NOT ARG_WITH_INSTALL)
+    cmake_parse_arguments(ARG "" "INSTALL_COMMAND" "" ${ARG_UNPARSED_ARGUMENTS})
+  endif()
   set(ARG_EXTRA ${ARG_UNPARSED_ARGUMENTS})
   if(ARG_CMAKE_ARGS)
     list(APPEND ARG_EXTRA "CMAKE_ARGS ${ARG_CMAKE_ARGS}")
   endif()
+
+  if(NOT ARG_WITH_INSTALL)
+    list(APPEND ARG_EXTRA "INSTALL_COMMAND \"\"")
+  endif()
+
   string (REPLACE ";" "\n                    " ARG_EXTRA "${ARG_EXTRA}")
 
   # Hide output if requested, but save it to a variable in case there's an
@@ -276,7 +286,7 @@ function(__FetchContent_directBuild contentName)
   # anything to be updated, so extra rebuilds of the project won't occur.
   # Make sure to pass through CMAKE_MAKE_PROGRAM in case the main project
   # has this set to something not findable on the PATH.
-  configure_file(${ARG_CMAKELISTS_TEMPLATE}
+  configure_file("${__FetchNBuildContent_privateDir}/CMakeLists.cmake.in"
                  "${ARG_SUBBUILD_DIR}/CMakeLists.txt")
   execute_process(
     COMMAND ${CMAKE_COMMAND} ${generatorOpts} .
@@ -314,7 +324,7 @@ function(__FetchContent_Build contentName)
   endif()
 
   set(options "")
-  set(oneValueArgs CMAKELISTS_TEMPLATE)
+  set(oneValueArgs WITH_INSTALL)
   set(multiValueArgs CMAKE_ARGS)
 
   cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
@@ -330,8 +340,8 @@ function(__FetchContent_Build contentName)
       SOURCE_DIR          "${CMAKE_CURRENT_BINARY_DIR}/${contentNameLower}-src"
       BINARY_DIR          "${CMAKE_CURRENT_BINARY_DIR}/${contentNameLower}-build"
       INSTALL_DIR         "${CMAKE_CURRENT_BINARY_DIR}/${contentNameLower}-install"
-      CMAKELISTS_TEMPLATE "${ARG_CMAKELISTS_TEMPLATE}"
       CMAKE_ARGS          "${ARG_CMAKE_ARGS}"
+      WITH_INSTALL        "${ARG_WITH_INSTALL}"
       ${ARGN}  # Could override any of the above ..._DIR variables
     )
 
@@ -401,8 +411,8 @@ function(__FetchContent_Build contentName)
       SOURCE_DIR          "${FETCHCONTENT_BASE_DIR}/${contentNameLower}-src"
       BINARY_DIR          "${FETCHCONTENT_BASE_DIR}/${contentNameLower}-build"
       INSTALL_DIR         "${FETCHCONTENT_BASE_DIR}/${contentNameLower}-install"
-      CMAKELISTS_TEMPLATE "${ARG_CMAKELISTS_TEMPLATE}"
       CMAKE_ARGS          "${ARG_CMAKE_ARGS}"
+      WITH_INSTALL        "${ARG_WITH_INSTALL}"
       # Put the saved details last so they can override any of the
       # the options we set above (this can include SOURCE_DIR or
       # BUILD_DIR)
@@ -429,11 +439,11 @@ endfunction()
 
 
 function(FetchContent_Build)
-    __FetchContent_Build(${ARGN} CMAKELISTS_TEMPLATE "${__FetchNBuildContent_privateDir}/CMakeLists.build.cmake.in")
+  __FetchContent_Build(${ARGN} WITH_INSTALL OFF)
 endfunction()
 
 function(FetchContent_Install)
-    __FetchContent_Build(${ARGN} CMAKELISTS_TEMPLATE "${__FetchNBuildContent_privateDir}/CMakeLists.install.cmake.in")
+  __FetchContent_Build(${ARGN} WITH_INSTALL ON)
 endfunction()
 
 
