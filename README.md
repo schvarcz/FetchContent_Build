@@ -13,8 +13,7 @@ FetchContent_Declare(
 
 FetchContent_Populate("FetchContent_Build")
 
-include("${fetchcontent_build_SOURCE_DIR}/prepare.cmake")
-include(FetchNBuildContent)
+include("${fetchcontent_build_SOURCE_DIR}/UpdateFetchContent.cmake")
 ```
 
 Then you may use like:
@@ -28,7 +27,16 @@ FetchContent_Declare(
   GIT_PROGRESS   true
 )
 
+FetchContent_Populate(minimal-cmake)
+# or #
 FetchContent_Build(minimal-cmake)
-# or
+# or #
 FetchContent_Install(minimal-cmake)
 ```
+
+----
+### Things to do
+
+- Put populate to false if I build (so next populate will change the status of ExternalProject to not compile anymore)
+- Do a MakeAvailable decide if we should compile and/or install
+- Find a way to not erase the source folder if you are starting a new build from scratch (maybe unsetting the url is the folder is not empty?)
